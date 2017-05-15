@@ -1,3 +1,6 @@
+Notes:
+	1) Make sure to write tests first! Then start coding!
+
 --------------------------------------------------------------------------------------------------------------
 Question #1:
 Alien Dictionary
@@ -291,3 +294,131 @@ var solver = function(pattern, str) {
 		}
 	}
 };
+
+--------------------------------------------------------------------------------------------------------------
+Question #4:
+Path Finding
+Where: Uber
+Who: Nico
+Time: 30min/50min
+Misc: Started on the whiteboard, ended coding on my own computer.
+
+After solving, the interviewer asked if the code works with "unreachable" nodes and cycles in the graph.
+
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Start by defining tests. Then start by defining how the object is going to be oriented, adding the function for making connections. Then work on the getPath function
+because once this is done this is used for the isConnected function.
+
+--------------------------------------------------------------------------------------------------------------
+Actual Code:
+
+var test1 = function() {
+	var graph = createGraph();
+	graph.connect("A", "B");
+	if (graph.isConnected("A", "B")) {
+		console.log("Success! test1 has passed");
+		return;
+	}
+	console.log("Unfortunate! test1 has failed");
+}
+
+var test2 = function() {
+	var graph = createGraph();
+	graph.connect("A", "B");
+	if (graph.isConnected("B", "A")) {
+		console.log("Success! test2 has passed");
+		return;
+	}
+	console.log("Unfortunate! test2 has failed");
+}
+
+var test3 = function() {
+	var graph = createGraph();
+	graph.connect("A", "B");
+
+	var path = graph.getPath("A", "B");
+	if (path == "A->B") {
+		console.log("Success! test3 has passed");
+		return;
+	}
+	console.log("Unfortunate! test3 has failed");
+}
+
+var test4 = function() {
+	var graph = createGraph();
+	graph.connect("A", "B");
+	graph.connect("A", "X");
+	graph.connect("B", "C");
+	graph.connect("X", "C");
+
+	if (graph.getPath("A", "C") == "A->B->C") {
+		console.log("Success! test4 has passed");
+		return;
+	}
+	console.log("Unfortunate! test4 has failed");
+}
+
+var runTests = function() {
+	test1();
+	test2();
+	test3();
+	test4();
+}
+
+var createGraph = function() {
+	return {
+		nodes: {},
+		getPath: function(s, e) {
+			var arr = dfs(this.nodes, s, e, []);
+			if (arr === undefined) {
+				return arr;
+			}
+			var str = "";
+			var first = true;
+			for(var i = 0; i < arr.length; i++) {
+				if (first) {
+					first = false;
+				} else {
+					str += "->";
+				}
+				str += arr[i];
+			}
+			return str;
+		},
+		isConnected: function(s, e) {
+			return this.getPath(s, e) != undefined;
+		},
+		connect: function(a, b) {
+			if (this.nodes[a] === undefined) {
+				this.nodes[a] = [b];
+			} else if (this.nodes[a].indexOf(b) < 0) {
+				this.nodes[a].push(b);
+			}
+			if (this.nodes[b] === undefined) {
+				this.nodes[b] = [a];
+			} else if (this.nodes[b].indexOf(a) < 0) {
+				this.nodes[b].push(a);
+			}
+		}
+ 	};
+}
+
+var dfs = function(nodes, curr, end, arr) {
+	arr.push(curr);
+	if (nodes[curr].indexOf(end) >= 0) {
+		arr.push(end);
+		return arr;
+	} else {
+		for(var i = 0; i < nodes[curr].length; i++) {
+			if (arr.indexOf(nodes[curr][i]) >= 0) {
+				continue;
+			}
+			var tmp = dfs(nodes, nodes[curr][i], end, arr);
+			if (tmp != undefined) {
+				return tmp;
+			}
+		}
+		return undefined;
+	}
+}
