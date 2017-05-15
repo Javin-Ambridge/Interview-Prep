@@ -178,3 +178,116 @@ var dikstras = function(simpleList, nodes, start, e, max) {
 		}
 	}
 }
+
+--------------------------------------------------------------------------------------------------------------
+Question #3:
+Bijection exist
+Where: Uber
+Time: 50min/1h
+What: Given a Pattern and a String find out if there exists a bijection between the pattern and the string.
+
+Example:
+Pattern = "abab";
+String = "redblueredblue";
+
+Answer: true
+Bijection is:
+a -> r
+b -> edblue
+
+OR 
+a -> red 
+b -> blue
+
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Start by doing the smallest possible bijection (the first element in the pattern is the first element in the string) and then try to keep 
+building off of that, if you ever get stuck (ie. the pattern already exists but wont fit, pattern is already used so cant expand) then backtrack.
+
+--------------------------------------------------------------------------------------------------------------
+Actual Code:
+
+var solver = function(pattern, str) {
+	var array = new Array(pattern.length);
+	for(var i = 0; i < pattern.length; i++) {
+		array[i] = new Array(str.length);
+		for(var k = 0; k < str.length; k++) {
+			array[i][k] = false;
+		}
+	}
+	var x = 0;
+	var y = 0;
+	var patternObj = {};
+	while(true) {
+		if (x >= str.length) {
+			break;
+		}
+		if (y >= pattern.length) {
+			break;
+		}
+		if (patternObj[pattern[y]] != undefined) {
+			if (array[y][x - 1] == true) {
+				var alreadyUsed = false;
+				for(var i = 0; i < y; i++) {
+					if (pattern[i] == pattern[y]) {
+						alreadyUsed = true;
+						break;
+					}
+				}
+				if (alreadyUsed) {
+					for(var i = 0; i < str.length; i++) {
+						array[y][i] = false;
+					}
+					y--;
+					x -= patternObj[pattern[y]].length;
+					console.log("Pattern can't continue here! Already used!");
+					console.log("New position, x: " + x + ", y: " + y);
+				} else {
+					array[y][x] = true;
+					patternObj[pattern[y]] += str[x];
+					x++;
+					y++;
+					console.log("Pattern not already used, so extend it! Now: " + patternObj[pattern[y - 1]]);
+					console.log("New position, x: " + x + ", y: " + y);
+				}
+			} else {
+				if (str[x] == patternObj[pattern[y]][0]) {
+					for(var i = 0; i < patternObj[pattern[y]].length; i++) {
+						array[y][x] = true;
+						x++;
+					}
+					y++;
+					console.log("Pattern can be applied easily!");
+					console.log("New position, x: " + x + ", y: " + y);
+				} else {
+					y--;
+					console.log("Pattern exists but can't place it here!");
+					console.log("New position, x: " + x + ", y: " + y);
+				}
+			}
+		} else {
+			if (y + 1 >= pattern.length) {
+				for(var i = x; i < str.length; i++) {
+					array[y][i] = true;
+				}
+				patternObj[pattern[y]] = str.slice(x);
+				y++;
+			} else {
+				array[y][x] = true;
+				array[y][x + 1] = true;
+				patternObj[pattern[y]] = str.slice(x, x + 1);
+				x++;
+				y++;
+			}
+			console.log("Created pattern: " + patternObj[pattern[y - 1]] + ', for: ' + pattern[y - 1]);
+			console.log("New position, x: " + x + ", y: " + y);
+		}
+	}
+	console.log("Is there a bijection between '" + pattern + "' and '" + str + "'? " + array[pattern.length - 1][str.length - 1]);
+	if (array[pattern.length - 1][str.length - 1]) {
+		console.log("The Bijection found is: ");
+		for(var i = 0; i < pattern.length; i++) {
+			console.log(pattern[i] + " ---> " + patternObj[pattern[i]]);
+		}
+	}
+};
