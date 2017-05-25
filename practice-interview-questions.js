@@ -597,3 +597,58 @@ var lengthLongestPath = function(input) {
     }
     return maxVal;
 };
+
+--------------------------------------------------------------------------------------------------------------
+Question #6:
+Google Question
+
+Given a string, find the length of the longest substring T that contains at most k distinct characters.
+
+For example, Given s = “eceba” and k = 2,
+
+T is "ece" which its length is 3.
+
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Set it up so that it is a dynamic programming questions.
+
+--------------------------------------------------------------------------------------------------------------
+
+Actual Code:
+
+var lengthOfLongestSubstringKDistinct = function(s, k) {
+    if (k == 0) {
+        return 0;
+    }
+    var arr = new Array(s.length);
+    for(var i = 0; i < s.length; i++) {
+        arr[i] = new Array(s.length);
+        arr[i][i] = 1;
+    }
+    for(var y = 0; y < s.length; y++) {
+        var foundLetters = [s[y]];
+        for(var x = y + 1; x < s.length; x++) {
+            if (s[y] == s[x] || foundLetters.indexOf(s[x]) >= 0) {
+                arr[y][x] = arr[y][x - 1];
+            } else {
+                arr[y][x] = arr[y][x - 1] + 1;
+                foundLetters.push(s[x]);
+            }
+        }
+    }
+    var max = 0;
+    for(var y = 0; y < s.length; y++) {
+        var tmp = 1;
+        for(var x = y + 1; x < s.length; x++) {
+            if (arr[y][x] <= k) {
+                tmp++;
+            } else {
+                break;
+            }
+        }
+        if (tmp > max) {
+            max = tmp;
+        }
+    }
+    return max;
+};
