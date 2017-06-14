@@ -1647,3 +1647,390 @@ var combinationSum = function(candidates, target) {
     }
     return returnVal;
 };
+
+ --------------------------------------------------------------------------------------------------------------
+Question #16:
+Reverse a singly linked list.
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Done both recursively and iteratively.
+--------------------------------------------------------------------------------------------------------------
+
+/**
+ * Definition for singly-linked list.
+ * function ListNode(val) {
+ *     this.val = val;
+ *     this.next = null;
+ * }
+ */
+ 
+var tests = function() {
+    var list = {
+        val: 1,
+        next: {
+            val: 2,
+            next: {
+                val: 3,
+                next: null
+            }
+        }
+    };
+    var list2 = {
+        val: 1,
+        next: null
+    };
+    console.log("reveresed list: ", reverseList(list));
+    console.log("reveresed list: ", reverseList(list2));
+} 
+
+var newHead;
+
+var recurseReverse = function(prev, curr) {
+    if (curr.next == null) {
+        curr.next = prev;
+        prev.next = null;
+        newHead = curr;
+        return;
+    } else {
+        recurseReverse(curr, curr.next);
+        curr.next = prev;
+        prev.next = null;
+    }
+} 
+
+var reverseIterative = function(head) {
+    var stack = [];
+    stack.push(head);
+    var curr = head.next;
+    var foundBack = false;
+    while (stack.length > 0) {
+        if (foundBack) {
+            var prev = stack.pop();
+            curr.next = prev;
+            prev.next = null;
+            curr = prev;
+        } else {
+            if (curr.next == null) {
+                var prev = stack.pop();
+                curr.next = prev;
+                prev.next = null;
+                newHead = curr;
+                curr = prev;
+                foundBack = true;
+            } else {
+                stack.push(curr);
+                curr = curr.next;
+            }
+        }
+    }
+}
+
+/**
+ * @param {ListNode} head
+ * @return {ListNode}
+ */
+var reverseList = function(head) {
+    if (head == null) return null;
+    if (head.next == null) return head;
+    newHead = undefined;
+    //recurseReverse(head, head.next);
+    reverseIterative(head);
+    return newHead;
+};
+
+ --------------------------------------------------------------------------------------------------------------
+Question #17:
+Make a program that was able to store files, each file would come as a tuple with the information in it, 
+a unique identifier and the creation date. You had to be able to store, update and retrieve each version of 
+the file as changes happened.
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+--------------------------------------------------------------------------------------------------------------
+
+var tests = function() {
+	var store = new FileStore();
+	store.insert("temp data 1. Wow this data is cool!", "firstfile.txt", new Date());
+	console.log("get firstfile.txt", store.retrieve("firstfile.txt"));
+	store.update("temp data 2. This should be v2", "firstfile.txt");
+	console.log("get firstfile.txt", store.retrieve("firstfile.txt"));
+	console.log("get firstfile.txt v1", store.retrieve("firstfile.txt", 1));
+}
+
+var FileStore = function() {
+	this.store = new Map();
+};
+
+FileStore.prototype.insert = function(data, name, date) {
+	if (this.store.get(name) != undefined) return false;
+	this.store.set(name, [{
+		stored_data: data,
+		saved: date
+	}]);
+	return true;
+};
+
+FileStore.prototype.update = function(data, name) {
+	if (this.store.get(name) == undefined) return false;
+	var saved = this.store.get(name);
+	saved.push({
+		stored_data: data,
+		saved: new Date()
+	});
+	return true;
+};
+
+FileStore.prototype.retrieve = function(name, ver = null) {
+	if (this.store.get(name) == undefined) return false;
+	var saved = this.store.get(name);
+	if (ver) {
+		return saved[ver - 1]; //probably subtract 1 since v1 is init.
+	} else {
+		return saved[saved.length - 1];
+	}
+};
+
+ --------------------------------------------------------------------------------------------------------------
+Question #18:
+Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, determine if s can be segmented into a space-separated sequence of one or more dictionary words. You may assume the dictionary does not contain duplicate words.
+
+For example, given
+s = "leetcode",
+dict = ["leet", "code"].
+
+Return true because "leetcode" can be segmented as "leet code".
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Dynamic programming solution: Initially create a 2d array with the size of the string.
+Base case: Check if single characters are in the dictionary if they are set up the diagonal initially.
+Then start checking the ranges so: 0-1, 1-2, etc. Check if the whole string is in the dictionary if it is true, else
+check if you can split the string your checking into smaller components that are in the dictionary (so refernce back to array)
+Return [0][s.length - 1]
+--------------------------------------------------------------------------------------------------------------
+
+var tests = function() {
+	console.log("arr: ", wordBreak("leetcode", ["leet", "code"]));
+	console.log("arr: ", wordBreak("aaaaaaa", ["aaaa", "aaa"]));
+};
+
+var splitWithPrev = function(arr, y, x) {
+	for(var k = y; k < x; k++) {
+		if (arr[y][k] == true && arr[k + 1][x] == true) {
+			return true;
+		}
+	}
+	return false;
+};
+
+var wordBreak = function(s, dict) {
+	var arr = new Array(s.length);
+	for(var i = 0; i < s.length; i++) {
+		arr[i] = new Array(s.length);
+		if (dict.indexOf(s[i]) >= 0) {
+			arr[i][i] = true;
+		} else {
+			arr[i][i] = false;
+		}
+	}
+	for(var l = 1; l < s.length; l++) {
+		for(var y = 0; y < s.length; y++) {
+			var x = y + l;
+			if ((dict.indexOf(s.slice(y, x + 1)) >= 0) || splitWithPrev(arr, y, x)) {
+				arr[y][x] = true;
+			} else {
+				arr[y][x] = false;
+			}
+		}
+	}
+
+	return arr[0][s.length - 1];
+};
+
+ --------------------------------------------------------------------------------------------------------------
+Question #19:
+Design a data structure that supports all following operations in average O(1) time.
+
+insert(val): Inserts an item val to the set if not already present.
+remove(val): Removes an item val from the set if present.
+getRandom: Returns a random element from current set of elements. Each element must have the same probability of being returned.
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Have a map that is used to store index values, and then an array to store the actual values.
+Insert: add it to the array, and track the index value in the map.
+Remove: Check to see if the val is at the end of the array, if it is just remove from map and pop array.
+If it is not at the end of the array, swap with whatever is at the end of the array (update the map value for this swap).
+Then pop and delete from map.
+getRandom: random number and return value in array.
+--------------------------------------------------------------------------------------------------------------
+
+/**
+ * Initialize your data structure here.
+ */
+ 
+var tests = function() {
+    var a = new RandomizedSet();
+    console.log(a.insert(0)); //[0]
+    console.log(a.insert(1)); //[0,1]
+    console.log(a.remove(0)); //[1]
+    console.log(a.insert(2)); //[1,2]
+    console.log(a.remove(1)); //[2]
+    console.log(a.getRandom()); // -> 2
+}
+ 
+var RandomizedSet = function() {
+    this.store = [];
+    this.indLookup = new Map();
+};
+
+/**
+ * Inserts a value to the set. Returns true if the set did not already contain the specified element. 
+ * @param {number} val
+ * @return {boolean}
+ */
+RandomizedSet.prototype.insert = function(val) {
+    if (this.indLookup.get(val) != undefined) return false;
+    var tmp = this.store.push(val);
+    this.indLookup.set(val, (tmp - 1));
+    return true;
+};
+
+/**
+ * Removes a value from the set. Returns true if the set contained the specified element. 
+ * @param {number} val
+ * @return {boolean}
+ */
+RandomizedSet.prototype.remove = function(val) {
+    if (this.indLookup.get(val) == undefined) return false;
+    var ind = this.indLookup.get(val);
+    if (ind < this.store.length - 1) {
+        //not the last one
+        var tmpVal = this.store[this.store.length - 1];
+        this.store[this.store.length - 1] = val;
+        this.store[ind] = tmpVal;
+        this.indLookup.set(tmpVal, ind);
+    }
+    this.indLookup.delete(val);
+    this.store.pop();
+    return true;
+};
+
+/**
+ * Get a random element from the set.
+ * @return {number}
+ */
+RandomizedSet.prototype.getRandom = function() {
+    var rand = Math.floor(Math.random() * this.store.length);
+    return this.store[rand];
+};
+
+/** 
+ * Your RandomizedSet object will be instantiated and called as such:
+ * var obj = Object.create(RandomizedSet).createNew()
+ * var param_1 = obj.insert(val)
+ * var param_2 = obj.remove(val)
+ * var param_3 = obj.getRandom()
+ */
+
+ --------------------------------------------------------------------------------------------------------------
+Question #20:
+Determine if a Sudoku is valid, according to: Sudoku Puzzles - The Rules.
+
+The Sudoku board could be partially filled, where empty cells are filled with the character '.'.
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+Go through the suduko board once, and when ever you see a value that is not '.' add it to the cols map,
+rows map, and cube map. While adding to the maps check to see if it already exists, and if it does then the suduko
+board is not valid.
+--------------------------------------------------------------------------------------------------------------
+
+/**
+ * @param {character[][]} board
+ * @return {boolean}
+ */
+
+var rows = new Map();
+var cols = new Map();
+var cubes = new Map();
+
+var getRegionNumber = function(i) {
+    if (i >= 0 && i <= 2) {
+        return 1;
+    } else if (i >= 3 && i <= 5) {
+        return 2;
+    } else {
+        // i>= 6 && i<= 8
+        return 3;
+    }
+}
+
+var getRegion = function(y, x) {
+    return getRegionNumber(y) + "-" + getRegionNumber(x);
+}
+
+var addValue = function(val, y, x) {
+    var row = rows.get(y);
+    if (row == undefined) {
+        rows.set(y, []);
+        rows.get(y).push(val);
+    } else {
+        if (row.indexOf(val) >= 0) return false;
+        row.push(val);
+    }
+    var col = cols.get(x);
+    if (col == undefined) {
+        cols.set(x, []);
+        cols.get(x).push(val);
+    } else {
+        if (col.indexOf(val) >= 0) return false;
+        col.push(val);
+    }
+    var region = getRegion(y, x);
+    var cube = cubes.get(region);
+    if (cube == undefined) {
+        cubes.set(region, []);
+        cubes.get(region).push(val);
+    } else {
+        if (cube.indexOf(val) >= 0) return false;
+        cube.push(val);
+    }
+    
+    return true;
+};
+
+var processing = function(board) {
+    for(var y = 0; y < board.length; y++) {
+        for(var x = 0; x < board.length; x++) {
+            if (board[y][x] != '.') {
+                if (!addValue(board[y][x], y, x)) return false;
+            }
+        }
+    }
+    return true;
+};
+
+var isValidSudoku = function(board) {
+    rows.clear();
+    cols.clear();
+    cubes.clear();
+    return processing(board);
+};
+
+--------------------------------------------------------------------------------------------------------------
+Question #21:
+Rotate array by k.
+--------------------------------------------------------------------------------------------------------------
+Rundown:
+unshift the pop
+--------------------------------------------------------------------------------------------------------------
+
+var rotate = function(arr, k) {
+	var i = k % arr.length;
+	while(i--) {
+		arr.unshift(arr.pop());
+	}
+}
+
+var rotateLeft = function(arr, k) {
+	for(var i = 1; i <= k; i++) {
+		arr.push(arr.shift());
+	}
+}
